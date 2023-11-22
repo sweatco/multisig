@@ -12,5 +12,6 @@ cargo clippy --all \
   -A clippy::module_name_repetitions \
   -A clippy::needless-pass-by-value \
   -A clippy::must-use-candidate \
+  -A clippy::missing-panics-doc \
   \
   -D warnings

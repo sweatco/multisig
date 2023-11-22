@@ -25,7 +25,7 @@ cov: ##@Testing Run unit tests with coverage.
 
 test: ##@Testing Run unit tests.
 	cargo test --package model && \
-	cargo test --package contract_name
+	cargo test --package multisig
 
 integration: ##@Testing Run integration tests.
 	cargo test --package integration-tests

@@ -1,5 +1,5 @@
 [package]
-name = "contract_name"
+name = "multisig"
 version = "1.0.0"
 authors = ["Sweat Economy"]
 edition = "2021"
