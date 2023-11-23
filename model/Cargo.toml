@@ -10,4 +10,7 @@ name = "model"
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
+
+near-sdk = { workspace = true }
+
 integration-trait = { workspace = true }
