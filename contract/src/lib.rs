@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use model::{
+use multisig_model::{
     api::{MultisigApi, MultisigView},
     data::{MultiSigRequest, MultiSigRequestAction, MultiSigRequestWithSigner, MultisigRequestId},
 };

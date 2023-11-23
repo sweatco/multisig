@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use model::api::MultisigViewIntegration;
+use multisig_model::api::MultisigViewIntegration;
 
 use crate::context::{prepare_contract, IntegrationContext};
 

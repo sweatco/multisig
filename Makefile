@@ -24,7 +24,7 @@ cov: ##@Testing Run unit tests with coverage.
 	./scripts/coverage.sh
 
 test: ##@Testing Run unit tests.
-	cargo test --package model && \
+	cargo test --package multisig-model && \
 	cargo test --package multisig
 
 integration: ##@Testing Run integration tests.

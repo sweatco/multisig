@@ -17,7 +17,7 @@ tokio = { workspace = true }
 near-sdk = { workspace = true }
 near-workspaces = { workspace = true }
 
-model = { workspace = true }
+multisig-model = { workspace = true }
 integration-utils = { workspace = true }
 
 

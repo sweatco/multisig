@@ -21,4 +21,4 @@ near-sdk = { git = "https://github.com/sweatco/near-sdk-rs", rev = "8c48b26cc48d
 
 integration-trait = { git = "https://github.com/sweatco/integration-trait.git", rev = "8dd8b63cef5e60448629a8903ea43b642bbf9f45" }
 integration-utils = { git = "https://github.com/sweatco/integration-utils.git", rev = "0b3c2faf0db31cdb3481be4d35dbb48b62a98618" }
-model = { path = "model" }
+multisig-model = { path = "model" }

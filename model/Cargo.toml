@@ -1,11 +1,11 @@
 [package]
-name = "model"
+name = "multisig-model"
 version = "1.0.0"
 publish = false
 edition = "2021"
 
 [lib]
-name = "model"
+name = "multisig_model"
 
 [dependencies]
 anyhow = { workspace = true }

@@ -2,7 +2,7 @@
 
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
-use model::api::MultisigApiIntegration;
+use multisig_model::api::MultisigApiIntegration;
 use near_workspaces::Account;
 
 use crate::contract_name_interface::{Multisig, MULTISIG};

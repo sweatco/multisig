@@ -3,7 +3,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
-use model::{
+use multisig_model::{
     api::{MultisigApiIntegration, MultisigViewIntegration},
     data::{MultiSigRequest, MultisigRequestId},
 };
