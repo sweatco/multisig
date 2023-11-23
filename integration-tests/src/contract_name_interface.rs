@@ -1,82 +1,80 @@
 #![cfg(test)]
 
+use anyhow::Result;
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
-use model::ContractNameInterfaceIntegration;
+use model::{
+    api::{MultisigApiIntegration, MultisigViewIntegration},
+    data::{MultiSigRequest, MultisigRequestId},
+};
+use near_sdk::PublicKey;
 use near_workspaces::{Account, Contract};
 use serde_json::json;
 
-pub const CONTRACT_NAME: &str = "contract_name";
+pub const MULTISIG: &str = "multisig";
 
-pub struct ContractName<'a> {
+pub struct Multisig<'a> {
     account: Option<Account>,
     contract: &'a Contract,
 }
 
 #[async_trait]
-impl ContractNameInterfaceIntegration for ContractName<'_> {
-    async fn init(&self) -> anyhow::Result<()>
-    where
-        Self: Sized,
-    {
-        println!("▶️ Init contract");
-
-        self.contract.call("init").max_gas().transact().await?.into_result()?;
-
-        Ok(())
+impl MultisigApiIntegration for Multisig<'_> {
+    async fn new(&self, num_confirmations: usize) -> Result<()> {
+        self.call_contract("new", json!({ "num_confirmations": num_confirmations}))
+            .await
     }
 
-    async fn initialize_with_name(&self, name: String) -> anyhow::Result<()>
-    where
-        Self: Sized,
-    {
-        println!("▶️ Init contract with name");
-
-        self.contract
-            .call("init_with_name")
-            .args_json(json!({
-                "name": name,
-            }))
-            .max_gas()
-            .transact()
-            .await?
-            .into_result()?;
-
-        Ok(())
+    async fn add_request(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
+        self.call_contract("add_request", json!({ "request": request})).await
     }
 
-    async fn receive_name(&self) -> anyhow::Result<String> {
-        println!("▶️ Init contract with name");
-
-        let result = self
-            .contract
-            .call("receive_name")
-            .max_gas()
-            .transact()
-            .await?
-            .into_result()?;
-
-        Ok(result.json()?)
+    async fn add_request_and_confirm(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
+        self.call_contract("add_request_and_confirm", json!({ "request": request}))
+            .await
     }
 
-    async fn set_name(&mut self, name: String) -> anyhow::Result<()> {
-        println!("▶️ Init contract with name");
+    async fn delete_request(&mut self, request_id: MultisigRequestId) -> Result<MultiSigRequest> {
+        self.call_contract("delete_request", json!({ "request_id": request_id}))
+            .await
+    }
 
-        self.contract
-            .call("set_name")
-            .args_json(json!({
-                "name": name,
-            }))
-            .max_gas()
-            .transact()
-            .await?
-            .into_result()?;
-
-        Ok(())
+    async fn confirm(&mut self, request_id: MultisigRequestId) -> Result<bool> {
+        self.call_contract("confirm", json!({ "request_id": request_id })).await
     }
 }
 
-impl<'a> IntegrationContract<'a> for ContractName<'a> {
+#[async_trait]
+impl MultisigViewIntegration for Multisig<'_> {
+    async fn get_request(&self, request_id: MultisigRequestId) -> Result<MultiSigRequest> {
+        self.call_contract("get_request", json!({ "request_id": request_id}))
+            .await
+    }
+
+    async fn get_num_requests_pk(&self, public_key: PublicKey) -> Result<u32> {
+        self.call_contract("get_num_requests_pk", json!({ "public_key": public_key}))
+            .await
+    }
+
+    async fn list_request_ids(&self) -> Result<Vec<MultisigRequestId>> {
+        self.call_contract("list_request_ids", ()).await
+    }
+
+    async fn get_confirmations(&self, request_id: MultisigRequestId) -> Result<Vec<PublicKey>> {
+        self.call_contract("get_confirmations", json!({ "request_id": request_id}))
+            .await
+    }
+
+    async fn get_num_confirmations(&self) -> Result<usize> {
+        self.call_contract("get_num_confirmations", ()).await
+    }
+
+    async fn get_request_nonce(&self) -> Result<u32> {
+        self.call_contract("get_request_nonce", ()).await
+    }
+}
+
+impl<'a> IntegrationContract<'a> for Multisig<'a> {
     fn with_contract(contract: &'a Contract) -> Self {
         Self {
             contract,

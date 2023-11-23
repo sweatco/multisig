@@ -2,10 +2,10 @@
 
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
-use model::ContractNameInterfaceIntegration;
+use model::api::MultisigApiIntegration;
 use near_workspaces::Account;
 
-use crate::contract_name_interface::{ContractName, CONTRACT_NAME};
+use crate::contract_name_interface::{Multisig, MULTISIG};
 
 pub type Context = integration_utils::context::Context<near_workspaces::network::Sandbox>;
 
@@ -14,7 +14,7 @@ pub trait IntegrationContext {
     async fn manager(&mut self) -> anyhow::Result<Account>;
     async fn alice(&mut self) -> anyhow::Result<Account>;
     async fn fee(&mut self) -> anyhow::Result<Account>;
-    fn contract_name(&self) -> ContractName<'_>;
+    fn multisig(&self) -> Multisig<'_>;
 }
 
 #[async_trait]
@@ -31,13 +31,13 @@ impl IntegrationContext for Context {
         self.account("fee").await
     }
 
-    fn contract_name(&self) -> ContractName<'_> {
-        ContractName::with_contract(&self.contracts[CONTRACT_NAME])
+    fn multisig(&self) -> Multisig<'_> {
+        Multisig::with_contract(&self.contracts[MULTISIG])
     }
 }
 
 pub(crate) async fn prepare_contract() -> anyhow::Result<Context> {
-    let context = Context::new(&[CONTRACT_NAME], "build-integration".into()).await?;
-    context.contract_name().init().await?;
+    let context = Context::new(&[MULTISIG], "build-integration".into()).await?;
+    context.multisig().new(2).await?;
     Ok(context)
 }

@@ -13,6 +13,8 @@ rand = { workspace = true }
 futures = { workspace = true }
 itertools = { workspace = true }
 tokio = { workspace = true }
+
+near-sdk = { workspace = true }
 near-workspaces = { workspace = true }
 
 model = { workspace = true }
