@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use anyhow::Result;
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
@@ -7,9 +5,8 @@ use multisig_model::{
     api::{MultisigApiIntegration, MultisigViewIntegration},
     data::{MultiSigRequest, MultisigRequestId},
 };
-use near_sdk::PublicKey;
+use near_sdk::{serde_json::json, PublicKey};
 use near_workspaces::{Account, Contract};
-use serde_json::json;
 
 pub const MULTISIG: &str = "multisig";
 

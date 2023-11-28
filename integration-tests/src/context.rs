@@ -2,10 +2,9 @@
 
 use async_trait::async_trait;
 use integration_utils::integration_contract::IntegrationContract;
+use multisig_integration::{Multisig, MULTISIG};
 use multisig_model::api::MultisigApiIntegration;
 use near_workspaces::Account;
-
-use crate::contract_name_interface::{Multisig, MULTISIG};
 
 pub type Context = integration_utils::context::Context<near_workspaces::network::Sandbox>;
 
