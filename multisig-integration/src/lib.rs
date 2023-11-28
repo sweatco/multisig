@@ -23,21 +23,21 @@ impl MultisigApiIntegration for Multisig<'_> {
     }
 
     async fn add_request(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
-        self.call_contract("add_request", json!({ "request": request})).await
+        self.call_user("add_request", json!({ "request": request})).await
     }
 
     async fn add_request_and_confirm(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
-        self.call_contract("add_request_and_confirm", json!({ "request": request}))
+        self.call_user("add_request_and_confirm", json!({ "request": request}))
             .await
     }
 
     async fn delete_request(&mut self, request_id: MultisigRequestId) -> Result<MultiSigRequest> {
-        self.call_contract("delete_request", json!({ "request_id": request_id}))
+        self.call_user("delete_request", json!({ "request_id": request_id}))
             .await
     }
 
     async fn confirm(&mut self, request_id: MultisigRequestId) -> Result<bool> {
-        self.call_contract("confirm", json!({ "request_id": request_id })).await
+        self.call_user("confirm", json!({ "request_id": request_id })).await
     }
 }
 
