@@ -67,7 +67,7 @@ impl MultisigViewIntegration for Multisig<'_> {
     }
 
     async fn get_request_nonce(&self) -> Result<u32> {
-        self.call_contract("get_request_nonce", ()).await
+        self.call_user("get_request_nonce", ()).await
     }
 }
 

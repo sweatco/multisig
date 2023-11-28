@@ -1,5 +1,6 @@
 #![cfg(test)]
 
+use integration_utils::integration_contract::IntegrationContract;
 use multisig_model::api::MultisigViewIntegration;
 
 use crate::context::{prepare_contract, IntegrationContext};
@@ -8,9 +9,11 @@ use crate::context::{prepare_contract, IntegrationContext};
 async fn happy_flow() -> anyhow::Result<()> {
     println!("👷🏽 Run happy flow test");
 
-    let context = prepare_contract().await?;
+    let mut context = prepare_contract().await?;
 
-    assert_eq!(0, context.multisig().get_request_nonce().await?);
+    let alice = context.alice().await?;
+
+    assert_eq!(0, context.multisig().with_user(&alice).get_request_nonce().await?);
     assert_eq!(2, context.multisig().get_num_confirmations().await?);
 
     Ok(())
