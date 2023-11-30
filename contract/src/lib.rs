@@ -100,7 +100,7 @@ impl MultisigApi for MultiSigContract {
 
     /// Confirm given request with given signing key.
     /// If with this, there has been enough confirmation, a promise with request will be scheduled.
-    fn confirm(&mut self, request_id: MultisigRequestId) -> PromiseOrValue<bool> {
+    fn confirm(&mut self, request_id: MultisigRequestId) -> PromiseOrValue<()> {
         self.assert_valid_request(request_id);
         let mut confirmations = self.confirmations.get(&request_id).unwrap();
         assert!(
@@ -116,7 +116,7 @@ impl MultisigApi for MultiSigContract {
         } else {
             confirmations.insert(env::signer_account_pk());
             self.confirmations.insert(&request_id, &confirmations);
-            PromiseOrValue::Value(true)
+            PromiseOrValue::Value(())
         }
     }
 }
@@ -157,7 +157,7 @@ impl MultiSigContract {
     Helper methods
     ********************************/
 
-    fn execute_request(&mut self, request: MultiSigRequest) -> PromiseOrValue<bool> {
+    fn execute_request(&mut self, request: MultiSigRequest) -> PromiseOrValue<()> {
         let mut promise = Promise::new(request.receiver_id.clone());
         let receiver_id = request.receiver_id.clone();
         let num_actions = request.actions.len();
@@ -209,12 +209,12 @@ impl MultiSigContract {
                 MultiSigRequestAction::SetNumConfirmations { num_confirmations } => {
                     assert_one_action_only(receiver_id, num_actions);
                     self.num_confirmations = num_confirmations;
-                    return PromiseOrValue::Value(true);
+                    return PromiseOrValue::Value(());
                 }
                 MultiSigRequestAction::SetActiveRequestsLimit { active_requests_limit } => {
                     assert_one_action_only(receiver_id, num_actions);
                     self.active_requests_limit = active_requests_limit;
-                    return PromiseOrValue::Value(true);
+                    return PromiseOrValue::Value(());
                 }
             };
         }
@@ -504,13 +504,12 @@ mod tests {
         assert_eq!(c.requests.len(), 1);
         assert_eq!(c.get_num_requests_pk(new_key.clone()), 1);
         // self delete key
-        let request3 =
-            MultiSigRequest {
-                receiver_id: alice(),
-                actions: vec![MultiSigRequestAction::DeleteKey {
-                    public_key: new_key.clone(),
-                }],
-            };
+        let request3 = MultiSigRequest {
+            receiver_id: alice(),
+            actions: vec![MultiSigRequestAction::DeleteKey {
+                public_key: new_key.clone(),
+            }],
+        };
         // make request and confirm
         c.add_request_and_confirm(request3.clone());
         // should be empty now

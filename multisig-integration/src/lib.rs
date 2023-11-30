@@ -33,7 +33,7 @@ impl MultisigApiIntegration for Multisig<'_> {
         self.call("delete_request", json!({ "request_id": request_id})).await
     }
 
-    async fn confirm(&mut self, request_id: MultisigRequestId) -> Result<bool> {
+    async fn confirm(&mut self, request_id: MultisigRequestId) -> Result<()> {
         self.call("confirm", json!({ "request_id": request_id })).await
     }
 }

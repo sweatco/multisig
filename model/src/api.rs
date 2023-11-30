@@ -20,7 +20,7 @@ pub trait MultisigApi {
 
     /// Confirm given request with given signing key.
     /// If with this, there has been enough confirmation, a promise with request will be scheduled.
-    fn confirm(&mut self, request_id: MultisigRequestId) -> PromiseOrValue<bool>;
+    fn confirm(&mut self, request_id: MultisigRequestId) -> PromiseOrValue<()>;
 }
 
 #[make_integration_version]
