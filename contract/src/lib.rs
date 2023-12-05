@@ -204,7 +204,15 @@ impl MultiSigContract {
                     args,
                     deposit,
                     gas,
-                } => promise.function_call(method_name, args.into(), deposit.into(), gas),
+                } => {
+                    env::log_str(&format!(
+                        "Helloy? Function call or what?? {} {:?} {:?}",
+                        method_name, deposit, gas
+                    ));
+                    env::log_str(&format!("Data size: {}", args.0.len()));
+                    // promise.function_call(method_name, args.into(), deposit.into(), gas)
+                    promise.into()
+                }
                 // the following methods must be a single action
                 MultiSigRequestAction::SetNumConfirmations { num_confirmations } => {
                     assert_one_action_only(receiver_id, num_actions);
