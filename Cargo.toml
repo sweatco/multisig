@@ -23,4 +23,4 @@ near-workspaces = "0.9.0"
 near-sdk = { git = "https://github.com/sweatco/near-sdk-rs", rev = "8c48b26cc48d969c1e5f3162141fe9c824fccecd" }
 
 integration-trait = { git = "https://github.com/sweatco/integration-trait.git", rev = "8dd8b63cef5e60448629a8903ea43b642bbf9f45" }
-integration-utils = { git = "https://github.com/sweatco/integration-utils.git", rev = "2f4575512fe1289a25311365c9a7a616cbb4cb0c" }
+integration-utils = { git = "https://github.com/sweatco/integration-utils.git", rev = "0a1f6e78ef9302434b8222b567a724d9f47311cf" }
