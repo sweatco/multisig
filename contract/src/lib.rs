@@ -205,25 +205,12 @@ impl MultiSigContract {
                     deposit,
                     gas,
                 } => {
-                    env::log_str(&format!(
-                        "Helloy? Function call or what?? {} {:?} {:?}",
-                        method_name, deposit, gas
-                    ));
-                    env::log_str(&format!("Data size: {}", args.0.len()));
+                    env::log_str(&format!("method_name: {}", method_name));
+                    env::log_str(&format!("deposit: {:?}", deposit));
+                    env::log_str(&format!("gas: {:?}", gas));
+                    env::log_str(&format!("args.0.len(): {}", args.0.len()));
+
                     promise.function_call(method_name, args.into(), deposit.into(), gas)
-                }
-                MultiSigRequestAction::FunctionCallVec {
-                    method_name,
-                    args,
-                    deposit,
-                    gas,
-                } => {
-                    env::log_str(&format!(
-                        "Helloy? Function call or what?? {} {:?} {:?}",
-                        method_name, deposit, gas
-                    ));
-                    env::log_str(&format!("Data size: {}", args.len()));
-                    promise.function_call(method_name, args, deposit.into(), gas)
                 }
                 // the following methods must be a single action
                 MultiSigRequestAction::SetNumConfirmations { num_confirmations } => {

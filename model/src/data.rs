@@ -41,13 +41,6 @@ pub enum MultiSigRequestAction {
         deposit: U128,
         gas: Gas,
     },
-    /// Call function on behalf of this contract. Arguments here are unencoded `Vec<u8>`.
-    FunctionCallVec {
-        method_name: String,
-        args: Vec<u8>,
-        deposit: U128,
-        gas: Gas,
-    },
     /// Sets number of confirmations required to authorize requests.
     /// Can not be bundled with any other actions or transactions.
     SetNumConfirmations { num_confirmations: usize },
