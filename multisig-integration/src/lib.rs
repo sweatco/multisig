@@ -1,86 +1,87 @@
-use anyhow::Result;
 use async_trait::async_trait;
-use integration_utils::integration_contract::IntegrationContract;
+use integration_utils::{contract_call::ContractCall, integration_contract::IntegrationContract};
 use multisig_model::{
     api::{MultisigApiIntegration, MultisigViewIntegration},
     data::{MultiSigRequest, MultisigRequestId},
 };
 use near_sdk::{serde_json::json, PublicKey};
-use near_workspaces::{Account, Contract};
+use near_workspaces::Contract;
 
 pub const MULTISIG: &str = "multisig";
 
 pub struct Multisig<'a> {
-    account: Option<Account>,
     contract: &'a Contract,
 }
 
 #[async_trait]
 impl MultisigApiIntegration for Multisig<'_> {
-    async fn new(&self, num_confirmations: usize) -> Result<()> {
-        self.call("new", json!({ "num_confirmations": num_confirmations})).await
+    fn new(&self, num_confirmations: usize) -> ContractCall<()> {
+        self.make_call("new")
+            .args_json(json!({ "num_confirmations": num_confirmations}))
+            .unwrap()
     }
 
-    async fn add_request(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
-        self.call("add_request", json!({ "request": request})).await
+    fn add_request(&mut self, request: MultiSigRequest) -> ContractCall<MultisigRequestId> {
+        self.make_call("add_request")
+            .args_json(json!({ "request": request}))
+            .unwrap()
     }
 
-    async fn add_request_and_confirm(&mut self, request: MultiSigRequest) -> Result<MultisigRequestId> {
-        self.call("add_request_and_confirm", json!({ "request": request})).await
+    fn add_request_and_confirm(&mut self, request: MultiSigRequest) -> ContractCall<MultisigRequestId> {
+        self.make_call("add_request_and_confirm")
+            .args_json(json!({ "request": request}))
+            .unwrap()
     }
 
-    async fn delete_request(&mut self, request_id: MultisigRequestId) -> Result<MultiSigRequest> {
-        self.call("delete_request", json!({ "request_id": request_id})).await
+    fn delete_request(&mut self, request_id: MultisigRequestId) -> ContractCall<MultiSigRequest> {
+        self.make_call("delete_request")
+            .args_json(json!({ "request_id": request_id}))
+            .unwrap()
     }
 
-    async fn confirm(&mut self, request_id: MultisigRequestId) -> Result<()> {
-        self.call("confirm", json!({ "request_id": request_id })).await
+    fn confirm(&mut self, request_id: MultisigRequestId) -> ContractCall<()> {
+        self.make_call("confirm")
+            .args_json(json!({ "request_id": request_id }))
+            .unwrap()
     }
 }
 
 #[async_trait]
 impl MultisigViewIntegration for Multisig<'_> {
-    async fn get_request(&self, request_id: MultisigRequestId) -> Result<MultiSigRequest> {
-        self.call("get_request", json!({ "request_id": request_id})).await
+    fn get_request(&self, request_id: MultisigRequestId) -> ContractCall<MultiSigRequest> {
+        self.make_call("get_request")
+            .args_json(json!({ "request_id": request_id}))
+            .unwrap()
     }
 
-    async fn get_num_requests_pk(&self, public_key: PublicKey) -> Result<u32> {
-        self.call("get_num_requests_pk", json!({ "public_key": public_key}))
-            .await
+    fn get_num_requests_pk(&self, public_key: PublicKey) -> ContractCall<u32> {
+        self.make_call("get_num_requests_pk")
+            .args_json(json!({ "public_key": public_key}))
+            .unwrap()
     }
 
-    async fn list_request_ids(&self) -> Result<Vec<MultisigRequestId>> {
-        self.call("list_request_ids", ()).await
+    fn list_request_ids(&self) -> ContractCall<Vec<MultisigRequestId>> {
+        self.make_call("list_request_ids")
     }
 
-    async fn get_confirmations(&self, request_id: MultisigRequestId) -> Result<Vec<PublicKey>> {
-        self.call("get_confirmations", json!({ "request_id": request_id})).await
+    fn get_confirmations(&self, request_id: MultisigRequestId) -> ContractCall<Vec<PublicKey>> {
+        self.make_call("get_confirmations")
+            .args_json(json!({ "request_id": request_id}))
+            .unwrap()
     }
 
-    async fn get_num_confirmations(&self) -> Result<usize> {
-        self.call("get_num_confirmations", ()).await
+    fn get_num_confirmations(&self) -> ContractCall<usize> {
+        self.make_call("get_num_confirmations")
     }
 
-    async fn get_request_nonce(&self) -> Result<u32> {
-        self.call("get_request_nonce", ()).await
+    fn get_request_nonce(&self) -> ContractCall<u32> {
+        self.make_call("get_request_nonce")
     }
 }
 
 impl<'a> IntegrationContract<'a> for Multisig<'a> {
     fn with_contract(contract: &'a Contract) -> Self {
-        Self {
-            contract,
-            account: None,
-        }
-    }
-
-    fn with_user(&mut self, account: &Account) -> &mut Self {
-        self.account = account.clone().into();
-        self
-    }
-
-    fn user_account(&self) -> Option<Account> {
-        self.account.clone()
+        Self { contract }
     }
 
     fn contract(&self) -> &'a Contract {
