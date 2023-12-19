@@ -22,5 +22,5 @@ multisig-integration = { path = "multisig-integration" }
 near-workspaces = "0.9.0"
 near-sdk = { git = "https://github.com/sweatco/near-sdk-rs", rev = "8c48b26cc48d969c1e5f3162141fe9c824fccecd" }
 
-integration-trait = { git = "https://github.com/sweatco/integration-utils.git", rev = "4595c0fa9e72c0adeab0496a5facfeb94483e374" }
-integration-utils = { git = "https://github.com/sweatco/integration-utils.git", rev = "4595c0fa9e72c0adeab0496a5facfeb94483e374" }
+integration-trait = { git = "https://github.com/sweatco/integration-utils.git", rev = "9a455faf70702e285eea39ae69a73a4d123b523f" }
+integration-utils = { git = "https://github.com/sweatco/integration-utils.git", rev = "9a455faf70702e285eea39ae69a73a4d123b523f" }
