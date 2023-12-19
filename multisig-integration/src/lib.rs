@@ -5,7 +5,7 @@ use multisig_model::{
     data::{MultiSigRequest, MultisigRequestId},
 };
 use near_sdk::{serde_json::json, PublicKey};
-use near_workspaces::Contract;
+use near_workspaces::{types::NearToken, Contract};
 
 pub const MULTISIG: &str = "multisig";
 
@@ -43,6 +43,7 @@ impl MultisigApiIntegration for Multisig<'_> {
         self.make_call("confirm")
             .args_json(json!({ "request_id": request_id }))
             .unwrap()
+            .deposit(NearToken::from_yoctonear(1))
     }
 }
 
