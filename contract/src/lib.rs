@@ -1,23 +1,21 @@
 use std::collections::HashSet;
 
 use multisig_model::{
-    api::{MultisigApi, MultisigView},
-    data::{MultiSigRequest, MultiSigRequestAction, MultiSigRequestWithSigner, MultisigRequestId},
+    MultiSigRequest, MultiSigRequestAction, MultiSigRequestWithSigner, MultisigApi, MultisigRequestId, MultisigView,
 };
 use near_sdk::{
-    borsh::{self, BorshDeserialize, BorshSerialize},
-    collections::UnorderedMap,
-    env, near_bindgen, AccountId, Promise, PromiseOrValue, PublicKey,
+    collections::UnorderedMap, env, near, near_bindgen, AccountId, NearToken, PanicOnDefault, Promise, PromiseOrValue,
+    PublicKey,
 };
 
 /// Unlimited allowance for multisig keys.
-const DEFAULT_ALLOWANCE: u128 = 0;
+const DEFAULT_ALLOWANCE: NearToken = NearToken::from_yoctonear(0);
 
 // Request cooldown period (time before a request can be deleted)
 const REQUEST_COOLDOWN: u64 = 900_000_000_000;
 
-#[near_bindgen]
-#[derive(BorshDeserialize, BorshSerialize)]
+#[near(contract_state)]
+#[derive(PanicOnDefault)]
 pub struct MultiSigContract {
     num_confirmations: usize,
     request_nonce: MultisigRequestId,
@@ -26,13 +24,6 @@ pub struct MultiSigContract {
     num_requests_pk: UnorderedMap<PublicKey, u32>,
     // per key
     active_requests_limit: u32,
-}
-
-// If you haven't initialized the contract with new(num_confirmations: u32)
-impl Default for MultiSigContract {
-    fn default() -> Self {
-        env::panic_str("Multisig contract should be initialized before usage")
-    }
 }
 
 #[near_bindgen]
@@ -163,15 +154,19 @@ impl MultiSigContract {
         let num_actions = request.actions.len();
         for action in request.actions {
             promise = match action {
-                MultiSigRequestAction::Transfer { amount } => promise.transfer(amount.into()),
+                MultiSigRequestAction::Transfer { amount } => promise.transfer(amount),
                 MultiSigRequestAction::CreateAccount => promise.create_account(),
                 MultiSigRequestAction::DeployContract { code } => promise.deploy_contract(code.into()),
                 MultiSigRequestAction::AddKey { public_key, permission } => {
                     assert_self_request(receiver_id.clone());
                     if let Some(permission) = permission {
+                        // TODO:
+                        #[allow(deprecated)]
                         promise.add_access_key(
                             public_key,
-                            permission.allowance.map_or(DEFAULT_ALLOWANCE, Into::into),
+                            permission
+                                .allowance
+                                .map_or(DEFAULT_ALLOWANCE, |allowance| NearToken::from_yoctonear(allowance.0)),
                             permission.receiver_id,
                             permission.method_names.join(","),
                         )
@@ -205,12 +200,12 @@ impl MultiSigContract {
                     deposit,
                     gas,
                 } => {
-                    env::log_str(&format!("method_name: {}", method_name));
-                    env::log_str(&format!("deposit: {:?}", deposit));
-                    env::log_str(&format!("gas: {:?}", gas));
+                    env::log_str(&format!("method_name: {method_name}"));
+                    env::log_str(&format!("deposit: {deposit:?}"));
+                    env::log_str(&format!("gas: {gas:?}"));
                     env::log_str(&format!("args.0.len(): {}", args.0.len()));
 
-                    promise.function_call(method_name, args.into(), deposit.into(), gas)
+                    promise.function_call(method_name, args.into(), deposit, gas)
                 }
                 // the following methods must be a single action
                 MultiSigRequestAction::SetNumConfirmations { num_confirmations } => {
@@ -284,17 +279,12 @@ fn assert_one_action_only(receiver_id: AccountId, num_actions: usize) {
 mod tests {
     use std::str::FromStr;
 
-    use near_sdk::{testing_env, AccountId, Balance, BlockHeight, EpochHeight, Gas, VMContext};
+    use near_sdk::{
+        test_utils::test_env::{alice, bob},
+        testing_env, AccountId, BlockHeight, EpochHeight, Gas, VMContext,
+    };
 
     use super::*;
-
-    pub fn alice() -> AccountId {
-        AccountId::new_unchecked("alice".to_string())
-    }
-
-    pub fn bob() -> AccountId {
-        AccountId::new_unchecked("bob".to_string())
-    }
 
     pub struct VMContextBuilder {
         context: VMContext,
@@ -304,19 +294,19 @@ mod tests {
         pub fn new() -> Self {
             Self {
                 context: VMContext {
-                    current_account_id: AccountId::new_unchecked("current_account_id".to_string()),
-                    signer_account_id: AccountId::new_unchecked("signer_account_id".to_string()),
+                    current_account_id: AccountId::from_str("current_account_id").unwrap(),
+                    signer_account_id: AccountId::from_str("signer_account_id").unwrap(),
                     signer_account_pk: PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
-                    predecessor_account_id: AccountId::new_unchecked("predecessor_account_id".to_string()),
+                    predecessor_account_id: AccountId::from_str("predecessor_account_id").unwrap(),
                     input: vec![],
                     epoch_height: 0,
                     block_index: 0,
                     block_timestamp: 0,
-                    account_balance: 0,
-                    account_locked_balance: 0,
+                    account_balance: NearToken::from_yoctonear(0),
+                    account_locked_balance: NearToken::from_yoctonear(0),
                     storage_usage: 10u64.pow(6),
-                    attached_deposit: 0,
-                    prepaid_gas: Gas(10u64.pow(18)),
+                    attached_deposit: NearToken::from_yoctonear(0),
+                    prepaid_gas: Gas::from_gas(10u64.pow(18)),
                     random_seed: [
                         1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 3,
                     ],
@@ -365,18 +355,18 @@ mod tests {
         }
 
         #[allow(dead_code)]
-        pub fn attached_deposit(mut self, amount: Balance) -> Self {
+        pub fn attached_deposit(mut self, amount: NearToken) -> Self {
             self.context.attached_deposit = amount;
             self
         }
 
-        pub fn account_balance(mut self, amount: Balance) -> Self {
+        pub fn account_balance(mut self, amount: NearToken) -> Self {
             self.context.account_balance = amount;
             self
         }
 
         #[allow(dead_code)]
-        pub fn account_locked_balance(mut self, amount: Balance) -> Self {
+        pub fn account_locked_balance(mut self, amount: NearToken) -> Self {
             self.context.account_locked_balance = amount;
             self
         }
@@ -386,7 +376,7 @@ mod tests {
         }
     }
 
-    fn context_with_key(key: PublicKey, amount: Balance) -> VMContext {
+    fn context_with_key(key: PublicKey, amount: NearToken) -> VMContext {
         VMContextBuilder::new()
             .current_account_id(alice())
             .predecessor_account_id(alice())
@@ -396,7 +386,7 @@ mod tests {
             .finish()
     }
 
-    fn context_with_key_future(key: PublicKey, amount: Balance) -> VMContext {
+    fn context_with_key_future(key: PublicKey, amount: NearToken) -> VMContext {
         VMContextBuilder::new()
             .current_account_id(alice())
             .block_timestamp(REQUEST_COOLDOWN + 1)
@@ -409,7 +399,7 @@ mod tests {
 
     #[test]
     fn test_multi_3_of_n() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -443,7 +433,7 @@ mod tests {
 
     #[test]
     fn test_multi_add_request_and_confirm() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -477,7 +467,7 @@ mod tests {
 
     #[test]
     fn add_key_delete_key_storage_cleared() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -527,7 +517,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_panics_add_key_different_account() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -548,7 +538,7 @@ mod tests {
 
     #[test]
     fn test_change_num_confirmations() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -565,7 +555,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_panics_on_second_confirm() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -585,7 +575,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_panics_delete_request() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -602,7 +592,7 @@ mod tests {
 
     #[test]
     fn test_delete_request_future() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -624,7 +614,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_delete_request_panic_wrong_key() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount
@@ -644,7 +634,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_too_many_requests() {
-        let amount = 1_000;
+        let amount = NearToken::from_yoctonear(1_000);
         testing_env!(context_with_key(
             PublicKey::from_str("Eg2jtsiMrprn7zgKKUk79qM1hWhANsFyE6JSX4txLEuy").unwrap(),
             amount

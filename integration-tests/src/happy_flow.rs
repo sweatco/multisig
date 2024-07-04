@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use multisig_model::api::MultisigViewIntegration;
+use multisig_model::MultisigViewIntegration;
 
 use crate::context::{prepare_contract, IntegrationContext};
 
@@ -12,11 +12,8 @@ async fn happy_flow() -> anyhow::Result<()> {
 
     let alice = context.alice().await?;
 
-    assert_eq!(
-        0,
-        context.multisig().get_request_nonce().with_user(&alice).call().await?
-    );
-    assert_eq!(2, context.multisig().get_num_confirmations().call().await?);
+    assert_eq!(0, context.multisig().get_request_nonce().with_user(&alice).await?);
+    assert_eq!(2, context.multisig().get_num_confirmations().await?);
 
     Ok(())
 }

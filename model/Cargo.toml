@@ -7,13 +7,12 @@ edition = "2021"
 [lib]
 name = "multisig_model"
 
+[features]
+default = []
+integration-api = ["dep:near-workspaces"]
+
 [dependencies]
-anyhow = { workspace = true }
-async-trait = { workspace = true }
-
 near-sdk = { workspace = true }
+nitka = { workspace = true }
+near-workspaces = { workspace = true, optional = true }
 
-integration-trait = { workspace = true }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-integration-utils = { workspace = true }

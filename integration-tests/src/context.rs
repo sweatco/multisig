@@ -1,42 +1,32 @@
 #![cfg(test)]
 
-use async_trait::async_trait;
-use integration_utils::integration_contract::IntegrationContract;
-use multisig_integration::{Multisig, MULTISIG};
-use multisig_model::api::MultisigApiIntegration;
+use anyhow::Result;
+use multisig_model::{MultisigApiIntegration, MultisigContract};
 use near_workspaces::Account;
 
-pub type Context = integration_utils::context::Context<near_workspaces::network::Sandbox>;
+pub type Context = nitka::context::Context<near_workspaces::network::Sandbox>;
 
-#[async_trait]
-pub trait IntegrationContext {
-    async fn manager(&mut self) -> anyhow::Result<Account>;
-    async fn alice(&mut self) -> anyhow::Result<Account>;
-    async fn fee(&mut self) -> anyhow::Result<Account>;
-    fn multisig(&self) -> Multisig<'_>;
+pub const MULTISIG: &str = "multisig";
+
+pub(crate) trait IntegrationContext {
+    async fn alice(&mut self) -> Result<Account>;
+    fn multisig(&self) -> MultisigContract<'_>;
 }
 
-#[async_trait]
 impl IntegrationContext for Context {
-    async fn manager(&mut self) -> anyhow::Result<Account> {
-        self.account("manager").await
-    }
-
-    async fn alice(&mut self) -> anyhow::Result<Account> {
+    async fn alice(&mut self) -> Result<Account> {
         self.account("alice").await
     }
 
-    async fn fee(&mut self) -> anyhow::Result<Account> {
-        self.account("fee").await
-    }
-
-    fn multisig(&self) -> Multisig<'_> {
-        Multisig::with_contract(&self.contracts[MULTISIG])
+    fn multisig(&self) -> MultisigContract<'_> {
+        MultisigContract {
+            contract: &self.contracts[MULTISIG],
+        }
     }
 }
 
-pub(crate) async fn prepare_contract() -> anyhow::Result<Context> {
-    let context = Context::new(&[MULTISIG], "build-integration".into()).await?;
-    context.multisig().new(2).call().await?;
+pub(crate) async fn prepare_contract() -> Result<Context> {
+    let context = Context::new(&[MULTISIG], true, "build-integration".into()).await?;
+    context.multisig().new(2).await?;
     Ok(context)
 }

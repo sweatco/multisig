@@ -1,7 +1,14 @@
-use integration_trait::make_integration_version;
-use near_sdk::{PromiseOrValue, PublicKey};
+use near_sdk::PublicKey;
+use nitka::make_integration_version;
+#[cfg(feature = "integration-api")]
+use nitka::near_sdk;
 
 use crate::data::{MultiSigRequest, MultisigRequestId};
+
+#[cfg(feature = "integration-api")]
+pub struct MultisigContract<'a> {
+    pub contract: &'a near_workspaces::Contract,
+}
 
 #[make_integration_version]
 pub trait MultisigApi {
@@ -20,7 +27,7 @@ pub trait MultisigApi {
 
     /// Confirm given request with given signing key.
     /// If with this, there has been enough confirmation, a promise with request will be scheduled.
-    fn confirm(&mut self, request_id: MultisigRequestId) -> PromiseOrValue<()>;
+    fn confirm(&mut self, request_id: MultisigRequestId) -> ::near_sdk::PromiseOrValue<()>;
 }
 
 #[make_integration_version]

@@ -1,15 +1,14 @@
 use near_sdk::{
-    borsh::{self, BorshDeserialize, BorshSerialize},
     json_types::{Base64VecU8, U128},
-    serde::{Deserialize, Serialize},
-    AccountId, Gas, PublicKey,
+    near, AccountId, Gas, NearToken, PublicKey,
 };
 
 pub type MultisigRequestId = u32;
 
 /// Permissions for function call access key.
-#[derive(Debug, Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
+
+#[near(serializers=[borsh, json])]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FunctionCallPermission {
     pub allowance: Option<U128>,
     pub receiver_id: AccountId,
@@ -17,11 +16,12 @@ pub struct FunctionCallPermission {
 }
 
 /// Lowest level action that can be performed by the multisig contract.
-#[derive(Debug, Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
-#[serde(tag = "type", crate = "near_sdk::serde")]
+#[near(serializers=[borsh, json])]
+#[derive(Debug, Clone, PartialEq)]
+#[serde(tag = "type")]
 pub enum MultiSigRequestAction {
     /// Transfers given amount to receiver.
-    Transfer { amount: U128 },
+    Transfer { amount: NearToken },
     /// Create a new account.
     CreateAccount,
     /// Deploys contract to receiver's account. Can upgrade given contract as well.
@@ -38,7 +38,7 @@ pub enum MultiSigRequestAction {
     FunctionCall {
         method_name: String,
         args: Base64VecU8,
-        deposit: U128,
+        deposit: NearToken,
         gas: Gas,
     },
     /// Sets number of confirmations required to authorize requests.
@@ -52,16 +52,16 @@ pub enum MultiSigRequestAction {
 }
 
 // The request the user makes specifying the receiving account and actions they want to execute (1 tx)
-#[derive(Debug, Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers=[borsh, json])]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MultiSigRequest {
     pub receiver_id: AccountId,
     pub actions: Vec<MultiSigRequestAction>,
 }
 
 // An internal request wrapped with the signer_pk and added timestamp to determine num_requests_pk and prevent against malicious key holder gas attacks
-#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
-#[serde(crate = "near_sdk::serde")]
+#[near(serializers=[borsh, json])]
+#[derive(Clone)]
 pub struct MultiSigRequestWithSigner {
     pub request: MultiSigRequest,
     pub signer_pk: PublicKey,
